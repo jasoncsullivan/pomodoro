@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-import { StyleSheet, Text, View, Button } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 
 import { vibrate } from "./utils";
+
+const WORK_TIME = 25;
+const BREAK_TIME = 5;
 
 export default function PomodoroTimer() {
   const [timeLeft, setTimeLeft] = useState(null);
@@ -22,17 +25,18 @@ export default function PomodoroTimer() {
     });
 
   useEffect(() => {
-    setTimeLeft(60 * (isWorkMode ? 0.1 : 5));
+    if (isRunning) {
+      setTimeLeft(60 * (isWorkMode ? WORK_TIME : BREAK_TIME));
 
-    intervalRef.current = setInterval(() => {
-      decrementTimer();
-    }, 1000);
+      intervalRef.current = setInterval(() => {
+        decrementTimer();
+      }, 1000);
 
-    return () => clearInterval(intervalRef.current);
+      return () => clearInterval(intervalRef.current);
+    }
   }, [isRunning, isWorkMode]);
 
   const onStartTimer = () => {
-    console.log("starting timer", isWorkMode);
     setIsRunning(true);
   };
 
@@ -52,26 +56,33 @@ export default function PomodoroTimer() {
     <View>
       {isWorkMode ? (
         <Text style={styles.timerInWorkMode}>
-          Work!
-          {isRunning ? formatTimeLeft(timeLeft) || "-" : "-"}
+          {isRunning ? "Work! \n\n" + formatTimeLeft(timeLeft) || "-" : ""}
         </Text>
       ) : (
         <Text style={styles.timerNotInWorkMode}>
-          Break!
+          Break! {"\n"} {"\n"}
           {formatTimeLeft(timeLeft)}
         </Text>
       )}
 
       {!isRunning && (
-        <Button
-          style={styles.startButton}
-          title="Start"
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={{ ...styles.startButton, ...styles.button }}
           onPress={() => onStartTimer(true)}
-        />
+        >
+          <Text style={styles.buttonText}>Start Work</Text>
+        </TouchableOpacity>
       )}
 
       {isRunning && (
-        <Button style={styles.resetButton} title="Stop" onPress={onStopTimer} />
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={{ ...styles.resetButton, ...styles.button }}
+          onPress={onStopTimer}
+        >
+          <Text style={styles.buttonText}>Stop Timer</Text>
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -88,12 +99,24 @@ const styles = StyleSheet.create({
     fontSize: 30,
     textAlign: "center",
   },
+  button: {
+    justifyContent: "center",
+    alignContent: "center",
+    borderWidth: 1,
+    borderRadius: 20,
+    height: 50,
+    width: 120,
+    marginTop: 30,
+  },
+  buttonText: {
+    textAlign: "center",
+    color: "blue",
+    fontSize: 20,
+  },
   startButton: {
     color: "green",
-    fontSize: 20,
   },
   resetButton: {
     color: "red",
-    fontSize: 20,
   },
 });
